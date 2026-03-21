@@ -9,7 +9,7 @@
 #pragma warning(disable:4996) //Evitamos alguno errores de funciones no seguras
 
 //Librerias necesarias 
-#include <glad/glad.h>
+#include <glad.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>

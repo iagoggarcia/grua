@@ -1,8 +1,8 @@
 #ifndef GRUA_H
 #define GRUA_H
 
-#include <glad/glad.h>
+#include <glad.h>
 
-void dibujarGrua(GLuint shaderProgram);
+void dibujarBase(GLuint shaderProgram);
 
 #endif

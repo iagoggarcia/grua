@@ -3,7 +3,13 @@
 in vec3 color;
 out vec4 FragColor;
 
+uniform bool usarColorUniform;
+uniform vec3 colorUniform;
+
 void main()
 {
-    FragColor = vec4(color, 1.0);
+    if (usarColorUniform)
+        FragColor = vec4(colorUniform, 1.0);
+    else
+        FragColor = vec4(color, 1.0);
 }
