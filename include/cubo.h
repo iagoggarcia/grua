@@ -5,4 +5,7 @@
 
 void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo);
 
+extern float vertices[];
+extern const unsigned int verticesSize;
+
 #endif
