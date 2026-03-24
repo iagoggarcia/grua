@@ -23,7 +23,6 @@ GLuint shaderProgram;
 unsigned int VAO_cubo;
 unsigned int VBO_cubo;
 
-
 void openGlInit() {
     glClearDepth(1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -63,15 +62,19 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO_cubo);
     glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
 
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
+
+    // -------- GRÚA --------
+    Grua grua;
+    inicializarGrua(grua);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -100,15 +103,14 @@ int main() {
         crearSuelo(shaderProgram, VAO_cubo);
 
         // -------- GRÚA --------
-        dibujarBase(shaderProgram);
-        dibujarCabina(shaderProgram);
-        dibujarBrazo(shaderProgram);
-        dibujarPluma(shaderProgram);
+        dibujarGrua(grua, shaderProgram);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    glDeleteVertexArrays(1, &VAO_cubo);
+    glDeleteBuffers(1, &VBO_cubo);
     glDeleteProgram(shaderProgram);
     glfwTerminate();
 

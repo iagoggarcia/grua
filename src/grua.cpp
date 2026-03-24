@@ -4,69 +4,73 @@
 
 extern unsigned int VAO_cubo;
 
-void dibujarBase(GLuint shaderProgram) {
-    // Activar color uniforme y establecer color de la base (gris oscuro)
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
-    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.4f, 0.4f, 0.4f);
-
+static glm::mat4 crearMatrizModelo(const Pieza& pieza) {
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, -0.45f, 2.0f));
-    model = glm::scale(model, glm::vec3(3.0f, 1.0f, 3.0f));
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    model = glm::translate(model, pieza.posicion);
 
-    glBindVertexArray(VAO_cubo);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    model = glm::rotate(model, glm::radians(pieza.rotacion.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(pieza.rotacion.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(pieza.rotacion.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    // Desactivar para que el resto de piezas usen sus colores de vértice
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
+    model = glm::scale(model, pieza.escala);
+
+    return model;
 }
 
-void dibujarCabina(GLuint shaderProgram) {
+static void dibujarPieza(const Pieza& pieza, const glm::mat4& modeloPadre, GLuint shaderProgram,
+                         float r, float g, float b) {
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
-    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.8f, 0.5f, 0.1f); // naranja
+    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), r, g, b);
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.05f + 0.4f, 2.0f)); // 0.05 = techo base, 0.4 = mitad cabina
-    model = glm::scale(model, glm::vec3(1.5f, 0.8f, 1.5f));
+    glm::mat4 model = modeloPadre * crearMatrizModelo(pieza);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
     glBindVertexArray(VAO_cubo);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
 }
 
-void dibujarBrazo(GLuint shaderProgram) {
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
-    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.9f, 0.7f, 0.0f); // amarillo
+void inicializarGrua(Grua& grua) {
+    // Estado global de la grúa en el mundo
+    grua.posicion = glm::vec3(0.0f, 0.0f, 2.0f);
+    grua.direccion = 0.0f;
+    grua.velocidad = 0.0f;
 
-    glm::mat4 model = glm::mat4(1.0f);
-    // Techo cabina = 0.85, mástil altura = 3.0, centro en 0.85 + 1.5 = 2.35
-    model = glm::translate(model, glm::vec3(0.0f, 2.35f, 2.0f));
-    model = glm::scale(model, glm::vec3(0.3f, 3.0f, 0.3f));
+    // Piezas en coordenadas LOCALES respecto a la grúa
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    glBindVertexArray(VAO_cubo);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    // Base
+    grua.base.posicion = glm::vec3(0.0f, -0.45f, 0.0f);
+    grua.base.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
+    grua.base.escala = glm::vec3(3.0f, 1.0f, 3.0f);
 
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
+    // Cabina
+    grua.cabina.posicion = glm::vec3(0.0f, 0.45f, 0.0f);
+    grua.cabina.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
+    grua.cabina.escala = glm::vec3(1.5f, 0.8f, 1.5f);
+
+    // Articulación / mástil
+    grua.articulacion.posicion = glm::vec3(0.0f, 2.35f, 0.0f);
+    grua.articulacion.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
+    grua.articulacion.escala = glm::vec3(0.3f, 3.0f, 0.3f);
+
+    // Brazo horizontal
+    grua.brazo.posicion = glm::vec3(0.0f, 3.95f, 2.5f);
+    grua.brazo.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
+    grua.brazo.escala = glm::vec3(0.2f, 0.2f, 5.0f);
 }
 
-void dibujarPluma(GLuint shaderProgram) {
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
-    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.9f, 0.7f, 0.0f);
+void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
+    glm::mat4 modeloGrua = glm::mat4(1.0f);
 
-    glm::mat4 model = glm::mat4(1.0f);
-    // En Y: tope mástil = 3.85, pluma altura = 0.2, centro en 3.85 + 0.1 = 3.95
-    // En Z: centrada en 2.0 + desplazada hacia delante la mitad de su longitud
-    float longitudPluma = 5.0f;
-    model = glm::translate(model, glm::vec3(0.0f, 3.95f, 2.0f + longitudPluma / 2.0f));
-    model = glm::scale(model, glm::vec3(0.2f, 0.2f, longitudPluma));
+    // Transformación global de toda la grúa
+    modeloGrua = glm::translate(modeloGrua, grua.posicion);
+    modeloGrua = glm::rotate(modeloGrua, glm::radians(grua.direccion), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    glBindVertexArray(VAO_cubo);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
+    dibujarPieza(grua.base, modeloGrua, shaderProgram, 0.4f, 0.4f, 0.4f);
+    dibujarPieza(grua.cabina, modeloGrua, shaderProgram, 0.8f, 0.5f, 0.1f);
+    dibujarPieza(grua.articulacion, modeloGrua, shaderProgram, 0.9f, 0.7f, 0.0f);
+    dibujarPieza(grua.brazo, modeloGrua, shaderProgram, 0.9f, 0.7f, 0.0f);
 }
