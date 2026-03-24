@@ -11,7 +11,7 @@
 #include "grua.h"
 #include "cubo.h"
 
-void processInput(GLFWwindow* window, Grua& grua);
+void processInput(GLFWwindow* window, Grua& grua, int& modoCamara);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // Configuración ventana
@@ -80,8 +80,11 @@ int main() {
     Grua grua;
     inicializarGrua(grua);
 
+    // 1 = primera persona, 2 = tercera persona, 3 = cenital
+    int modoCamara = 2;
+
     while (!glfwWindowShouldClose(window)) {
-        processInput(window, grua);
+        processInput(window, grua, modoCamara);
 
         float rad = glm::radians(grua.direccion);
         grua.posicion.x += sin(rad) * grua.velocidad;
@@ -91,7 +94,6 @@ int main() {
         grua.velocidad *= 0.98f;
 
         // Limitar la grúa para que no salga del suelo
-        // Ajusta estos valores si ves que el suelo real es más grande o más pequeño
         float limiteX = 9.0f;
         float limiteZ = 9.0f;
 
@@ -104,9 +106,29 @@ int main() {
 
         glUseProgram(shaderProgram);
 
+        glm::vec3 frente = glm::vec3(sin(rad), 0.0f, cos(rad));
+        glm::vec3 camPos;
+        glm::vec3 camTarget;
+
+        if (modoCamara == 1) {
+            // Primera persona: no metida dentro de la grúa
+            camPos = grua.posicion - frente * 2.0f + glm::vec3(0.0f, 3.5f, 0.0f);
+            camTarget = grua.posicion + frente * 12.0f + glm::vec3(0.0f, 3.0f, 0.0f);
+        }
+        else if (modoCamara == 2) {
+            // Tercera persona
+            camPos = grua.posicion - frente * 18.0f + glm::vec3(0.0f, 8.0f, 0.0f);
+            camTarget = grua.posicion + glm::vec3(0.0f, 2.0f, 0.0f);
+        }
+        else {
+            // Cenital más lejana
+            camPos = grua.posicion + glm::vec3(0.0f, 16.0f, 0.01f);
+            camTarget = grua.posicion;
+        }
+
         glm::mat4 view = glm::lookAt(
-            glm::vec3(25.0f, 10.0f, 5.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
+            camPos,
+            camTarget,
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
 
@@ -141,7 +163,7 @@ int main() {
     return 0;
 }
 
-void processInput(GLFWwindow* window, Grua& grua)
+void processInput(GLFWwindow* window, Grua& grua, int& modoCamara)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -157,6 +179,15 @@ void processInput(GLFWwindow* window, Grua& grua)
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         grua.direccion -= 1.0f;
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        modoCamara = 1;
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        modoCamara = 2;
+
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+        modoCamara = 3;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
