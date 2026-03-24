@@ -1,6 +1,7 @@
 #include <glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -10,7 +11,8 @@
 #include "grua.h"
 #include "cubo.h"
 
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Grua& grua);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // Configuración ventana
 const unsigned int SCR_WIDTH = 800;
@@ -44,6 +46,7 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -52,6 +55,7 @@ int main() {
     }
 
     openGlInit();
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
     // -------- CUBO --------
     glGenVertexArrays(1, &VAO_cubo);
@@ -77,7 +81,24 @@ int main() {
     inicializarGrua(grua);
 
     while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+        processInput(window, grua);
+
+        float rad = glm::radians(grua.direccion);
+        grua.posicion.x += sin(rad) * grua.velocidad;
+        grua.posicion.z += cos(rad) * grua.velocidad;
+
+        // Rozamiento simple
+        grua.velocidad *= 0.98f;
+
+        // Limitar la grúa para que no salga del suelo
+        // Ajusta estos valores si ves que el suelo real es más grande o más pequeño
+        float limiteX = 9.0f;
+        float limiteZ = 9.0f;
+
+        if (grua.posicion.x < -limiteX) grua.posicion.x = -limiteX;
+        if (grua.posicion.x >  limiteX) grua.posicion.x =  limiteX;
+        if (grua.posicion.z < -limiteZ) grua.posicion.z = -limiteZ;
+        if (grua.posicion.z >  limiteZ) grua.posicion.z =  limiteZ;
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -89,9 +110,12 @@ int main() {
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
 
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
         glm::mat4 projection = glm::perspective(
             glm::radians(45.0f),
-            (float)SCR_WIDTH / SCR_HEIGHT,
+            (float)width / (float)height,
             0.1f,
             100.0f
         );
@@ -117,8 +141,25 @@ int main() {
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, Grua& grua)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        grua.velocidad += 0.001f;
+
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+        grua.velocidad -= 0.001f;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        grua.direccion += 1.0f;
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        grua.direccion -= 1.0f;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
 }
