@@ -101,6 +101,9 @@ int main() {
 
         // -------- GRÚA --------
         dibujarBase(shaderProgram);
+        dibujarCabina(shaderProgram);
+        dibujarBrazo(shaderProgram);
+        dibujarPluma(shaderProgram);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
