@@ -23,5 +23,6 @@ struct Grua {
 
 void inicializarGrua(Grua& grua);
 void dibujarGrua(const Grua& grua, GLuint shaderProgram);
+static void dibujarRueda(const glm::vec3& posicionLocal, const glm::mat4& modeloPadre, GLuint shaderProgram, float r, float g, float b);
 
 #endif

@@ -10,13 +10,14 @@
 
 #include "grua.h"
 #include "cubo.h"
+#include "esfera.h"
 
 void processInput(GLFWwindow* window, Grua& grua, int& modoCamara);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // Configuración ventana
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 1000;
+const unsigned int SCR_HEIGHT = 1000;
 
 // shaders
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
@@ -24,6 +25,8 @@ GLuint shaderProgram;
 
 unsigned int VAO_cubo;
 unsigned int VBO_cubo;
+GLuint VAO_esfera;
+GLuint VBO_esfera;
 
 void openGlInit() {
     glClearDepth(1.0f);
@@ -73,6 +76,7 @@ int main() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+    crearEsfera(VAO_esfera, VBO_esfera);
 
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
 
@@ -94,8 +98,8 @@ int main() {
         grua.velocidad *= 0.98f;
 
         // Limitar la grúa para que no salga del suelo
-        float limiteX = 9.0f;
-        float limiteZ = 9.0f;
+        float limiteX = 19.0f;
+        float limiteZ = 19.0f;
 
         if (grua.posicion.x < -limiteX) grua.posicion.x = -limiteX;
         if (grua.posicion.x >  limiteX) grua.posicion.x =  limiteX;
@@ -117,13 +121,13 @@ int main() {
         }
         else if (modoCamara == 2) {
             // Tercera persona
-            camPos = grua.posicion - frente * 18.0f + glm::vec3(0.0f, 8.0f, 0.0f);
+            camPos = grua.posicion - frente * 24.0f + glm::vec3(0.0f, 8.0f, 0.0f);
             camTarget = grua.posicion + glm::vec3(0.0f, 2.0f, 0.0f);
         }
         else {
             // Cenital más lejana
-            camPos = grua.posicion + glm::vec3(0.0f, 16.0f, 0.01f);
-            camTarget = grua.posicion;
+            camPos = glm::vec3(50.0f, 20.0f, 8.0f);
+            camTarget = glm::vec3(0.0f, 0.0f, 0.0f);;
         }
 
         glm::mat4 view = glm::lookAt(
@@ -157,6 +161,8 @@ int main() {
 
     glDeleteVertexArrays(1, &VAO_cubo);
     glDeleteBuffers(1, &VBO_cubo);
+    glDeleteVertexArrays(1, &VAO_esfera);
+    glDeleteBuffers(1, &VBO_esfera);
     glDeleteProgram(shaderProgram);
     glfwTerminate();
 
