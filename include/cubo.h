@@ -1,9 +1,11 @@
 #ifndef CUBO_H
 #define CUBO_H
 
-#include <glad.h>
+#include <glad/glad.h>
 
 void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo);
+
+void crearCubo(GLuint& VAO_cubo, GLuint& VBO_cubo);
 
 extern float vertices[];
 extern const unsigned int verticesSize;

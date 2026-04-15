@@ -1,7 +1,7 @@
 #ifndef GRUA_H
 #define GRUA_H
 
-#include <glad.h>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 struct Pieza {
@@ -23,5 +23,7 @@ struct Grua {
 
 void inicializarGrua(Grua& grua);
 void dibujarGrua(const Grua& grua, GLuint shaderProgram);
+void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo);
+void actualizarGrua(Grua& grua, float deltaTime);
 
 #endif
