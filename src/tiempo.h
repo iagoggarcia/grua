@@ -1,6 +1,6 @@
 #ifndef TIEMPO_H
 #define TIEMPO_H
 
-float calcularDeltaTime(float& ultimoFrame);
+float lapsoDeltaTime(float& ultimoFrame);
 
 #endif

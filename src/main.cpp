@@ -81,7 +81,7 @@ int main() {
     float ultimoFrame = glfwGetTime();
 
     while (!glfwWindowShouldClose(window)) {
-        deltaTime = calcularDeltaTime(ultimoFrame);
+        deltaTime = lapsoDeltaTime(ultimoFrame);
 
         processInput(window);
         actualizarGrua(grua, deltaTime);
@@ -124,10 +124,10 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         grua.velocidad -= aceleracion * deltaTime;
 
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && grua.velocidad > 0.0f)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && std::abs(grua.velocidad) > 0.05f)
         grua.direccion += velocidadGiro * deltaTime;
 
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && grua.velocidad > 0.0f)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && std::abs(grua.velocidad) > 0.05f)
         grua.direccion -= velocidadGiro * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
@@ -139,8 +139,17 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         modoCamara = 3;
 
-    if (grua.velocidad < 0.0f)
-        grua.velocidad = 0.0f;
+    /*if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        grua.brazo.rotacion.x -= 40.0f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        grua.brazo.rotacion.x += 40.0f * deltaTime;
+
+    if (grua.brazo.rotacion.x < -60.0f)
+        grua.brazo.rotacion.x = -60.0f;
+
+    if (grua.brazo.rotacion.x > 20.0f)
+        grua.brazo.rotacion.x = 20.0f;*/
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

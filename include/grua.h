@@ -19,6 +19,7 @@ struct Grua {
     glm::vec3 posicion;
     float direccion;
     float velocidad;
+    float giroruedas; //angulo con el que van a rotar las ruedas sobre sí mismas
 };
 
 void inicializarGrua(Grua& grua);
