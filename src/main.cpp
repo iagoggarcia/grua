@@ -139,7 +139,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         modoCamara = 3;
 
-    /*if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         grua.brazo.rotacion.x -= 40.0f * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
@@ -148,8 +148,8 @@ void processInput(GLFWwindow* window)
     if (grua.brazo.rotacion.x < -60.0f)
         grua.brazo.rotacion.x = -60.0f;
 
-    if (grua.brazo.rotacion.x > 20.0f)
-        grua.brazo.rotacion.x = 20.0f;*/
+    if (grua.brazo.rotacion.x > 40.0f)
+        grua.brazo.rotacion.x = 40.0f;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

@@ -8,13 +8,14 @@
 extern unsigned int VAO_cubo;
 extern GLuint VAO_esfera;
 
-static glm::mat4 crearMatrizModelo(const Pieza& pieza) {
+static glm::mat4 crearMatrizModelo(const Pieza& pieza, int escala) {
     glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::translate(model, pieza.posicion);
     model = glm::rotate(model, glm::radians(pieza.rotacion.x), glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::rotate(model, glm::radians(pieza.rotacion.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(pieza.rotacion.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    if(escala == 1)
     model = glm::scale(model, pieza.escala);
 
     return model;
@@ -24,7 +25,7 @@ static void dibujarPieza(const Pieza& pieza, const glm::mat4& modeloPadre, GLuin
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), r, g, b);
 
-    glm::mat4 model = modeloPadre * crearMatrizModelo(pieza);
+    glm::mat4 model = modeloPadre * crearMatrizModelo(pieza, 1);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
@@ -101,14 +102,14 @@ void inicializarGrua(Grua& grua) {
     grua.articulacion.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
     grua.articulacion.escala = glm::vec3(0.3f, 3.0f, 0.3f);
 
-    grua.brazo.posicion = glm::vec3(0.0f, 0.5f, 0.0f);
+    grua.brazo.posicion = glm::vec3(0.0f, 1.5f, 0.0f);
     grua.brazo.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
     grua.brazo.escala = glm::vec3(0.2f, 0.2f, 5.0f);
 
     grua.giroruedas = 0.0f;
 }
 
-/*static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion, GLuint shaderProgram, float r, float g, float b) {
+static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion, GLuint shaderProgram, float r, float g, float b) {
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), r, g, b);
 
@@ -134,7 +135,7 @@ void inicializarGrua(Grua& grua) {
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
-}*/
+}
 
 void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     glm::mat4 modeloGrua = glm::mat4(1.0f);
@@ -146,8 +147,8 @@ void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     dibujarPieza(grua.cabina, modeloGrua, shaderProgram, 0.9f, 0.5f, 0.1f);
     dibujarPieza(grua.articulacion, modeloGrua, shaderProgram, 0.9f, 0.7f, 0.0f);
 
-    glm::mat4 modeloArt = modeloGrua * crearMatrizModelo(grua.articulacion);
-    dibujarPieza(grua.brazo, modeloArt, shaderProgram, 0.9f, 0.7f, 0.0f);
+    glm::mat4 modeloArt = modeloGrua * crearMatrizModelo(grua.articulacion,0);
+    dibujarBrazo(grua.brazo, modeloArt, shaderProgram, 0.9f, 0.7f, 0.0f);
 
     dibujarRueda(glm::vec3(-1.5f, -1.0f,  1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
     dibujarRueda(glm::vec3( 1.5f, -1.0f,  1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
