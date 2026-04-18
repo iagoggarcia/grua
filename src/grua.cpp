@@ -111,25 +111,29 @@ void inicializarGrua(Grua& grua) {
 
 static void dibujarFocoFrontal(const Grua& grua, const glm::mat4& modeloGrua, GLuint shaderProgram) {
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
-    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.95f, 0.95f, 0.75f);
+    glUniform1i(glGetUniformLocation(shaderProgram, "esFoco"), 1);
+
+    // color base del foco apagado
+    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.75f, 0.75f, 0.65f);
 
     glm::mat4 model = modeloGrua;
 
-    // Centro del frontal de la cabina
+    // MISMA posición que usamos en main.cpp para lightPos
     model = glm::translate(model, glm::vec3(
         0.0f,
-        grua.cabina.posicion.y,
-        grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.12f
+        grua.cabina.posicion.y - 0.10f,
+        grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.16f
     ));
 
-    // Pequeño cubo tipo faro
-    model = glm::scale(model, glm::vec3(0.22f, 0.18f, 0.12f));
+    // esfera más grande y más plana
+    model = glm::scale(model, glm::vec3(0.22f, 0.22f, 0.08f));
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(VAO_cubo);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(VAO_esfera);
+    glDrawArrays(GL_TRIANGLES, 0, verticesEsferaSize / (8 * sizeof(float)));
 
+    glUniform1i(glGetUniformLocation(shaderProgram, "esFoco"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
 }
 

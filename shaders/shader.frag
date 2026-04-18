@@ -14,40 +14,51 @@ uniform vec3 lightColor;
 uniform float cutOff;
 uniform float outerCutOff;
 
+uniform bool esFoco;
+uniform bool luzEncendida;
+
 void main()
 {
+    // La esferita del foco se ve brillante cuando la luz está encendida
+    if (esFoco) {
+        vec3 colorFocoApagado = colorUniform;
+        vec3 colorFocoEncendido = vec3(1.0f, 1.0f, 0.85f);
+
+        if (luzEncendida)
+            FragColor = vec4(colorFocoEncendido, 1.0f);
+        else
+            FragColor = vec4(colorFocoApagado, 1.0f);
+
+        return;
+    }
+
     vec3 objectColor;
 
     if (usarColorUniform)
         objectColor = colorUniform;
     else
-        objectColor = vec3(0.15f, 0.5f, 0.15f); // color del suelo
+        objectColor = vec3(0.15f, 0.5f, 0.15f);
 
     vec3 norm = normalize(Normal);
 
-    // Luz ambiente general para que no se vea toda la escena negra
-    float ambientI = 0.70f;
+    // luz ambiente general
+    float ambientI = 0.7f;
     vec3 ambient = ambientI * vec3(1.0f, 1.0f, 1.0f) * objectColor;
 
-    // Dirección desde la luz al fragmento
     vec3 lightVector = normalize(lightPos - FragPos);
 
-    // Ángulo respecto al eje del foco
     float theta = dot(normalize(-lightVector), normalize(lightDir));
 
-    // Borde suave del cono
     float epsilon = cutOff - outerCutOff;
     float intensidad = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
 
-    // Difusa del foco
     float diff = max(dot(norm, lightVector), 0.0);
 
-    // Atenuación con la distancia
     float distancia = length(lightPos - FragPos);
-    float atenuacion = 1.0 / (1.0 + 0.09 * distancia + 0.032 * distancia * distancia);
+    float atenuacion = 1.0 / (1.0 + 0.09f * distancia + 0.032f * distancia * distancia);
 
     vec3 diffuse = diff * intensidad * atenuacion * lightColor * objectColor * 2.5f;
 
     vec3 result = ambient + diffuse;
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, 1.0f);
 }
