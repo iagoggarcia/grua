@@ -94,6 +94,51 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(camara.view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+        // Color del foco
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 2.2f, 2.2f, 1.8f);
+    
+        float rad = glm::radians(grua.direccion);
+
+        // Dirección frontal de la grúa
+        glm::vec3 frente = glm::normalize(glm::vec3(std::sin(rad), 0.0f, std::cos(rad)));
+        glm::vec3 derecha = glm::normalize(glm::vec3(std::cos(rad), 0.0f, -std::sin(rad)));
+        glm::vec3 arriba = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        // Centro exacto del frontal de la cabina:
+        // x = centro
+        // y = centro vertical de la cabina
+        // z = cara frontal de la cabina
+        glm::vec3 focoLocal = glm::vec3(
+            0.0f,
+            grua.cabina.posicion.y,
+            grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f
+        );
+
+        // sacamos la luz un poco hacia delante para que no "nazca" dentro de la cabina
+        glm::vec3 focoOffsetDelante = frente * 0.35f;
+
+        glm::vec3 lightPos = grua.posicion
+                        + derecha * focoLocal.x
+                        + arriba  * focoLocal.y
+                        + frente  * focoLocal.z
+                        + focoOffsetDelante;
+
+        // Dirección del foco: hacia delante y un poco hacia abajo
+        // para que se note sobre el suelo
+        glm::vec3 lightDir = glm::normalize(frente + glm::vec3(0.0f, -0.18f, 0.0f));
+
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"),
+                    lightPos.x, lightPos.y, lightPos.z);
+
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"),
+                    lightDir.x, lightDir.y, lightDir.z);
+
+        // Apertura del cono
+        glUniform1f(glGetUniformLocation(shaderProgram, "cutOff"),
+                    glm::cos(glm::radians(12.5f)));
+        glUniform1f(glGetUniformLocation(shaderProgram, "outerCutOff"),
+                    glm::cos(glm::radians(18.0f)));
+
         dibujarEscena(grua, shaderProgram, VAO_cubo);
 
         glfwSwapBuffers(window);

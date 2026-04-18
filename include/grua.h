@@ -23,6 +23,7 @@ struct Grua {
 };
 
 void inicializarGrua(Grua& grua);
+static void dibujarFocoFrontal(const Grua& grua, const glm::mat4& modeloGrua, GLuint shaderProgram);
 void dibujarGrua(const Grua& grua, GLuint shaderProgram);
 void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo);
 void actualizarGrua(Grua& grua, float deltaTime);

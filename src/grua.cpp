@@ -90,23 +90,47 @@ void inicializarGrua(Grua& grua) {
     grua.direccion = 0.0f;
     grua.velocidad = 0.0f;
 
-    grua.base.posicion = glm::vec3(0.0f, -0.45f, 0.0f);
+    grua.base.posicion = glm::vec3(0.0f, -0.55f, 0.0f);
     grua.base.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
-    grua.base.escala = glm::vec3(3.4f, 1.1f, 3.4f);
+    grua.base.escala = glm::vec3(2.2f, 0.7f, 4.2f);
 
-    grua.cabina.posicion = glm::vec3(0.0f, 0.45f, 0.0f);
+    grua.cabina.posicion = glm::vec3(0.0f, 0.10f, 1.45f);
     grua.cabina.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
-    grua.cabina.escala = glm::vec3(1.8f, 1.0f, 1.8f);
+    grua.cabina.escala = glm::vec3(2.2f, 0.9f, 1.0f);
 
-    grua.articulacion.posicion = glm::vec3(0.0f, 2.35f, 0.0f);
+    grua.articulacion.posicion = glm::vec3(0.0f, 1.65f, 0.0f);
     grua.articulacion.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
-    grua.articulacion.escala = glm::vec3(0.3f, 3.0f, 0.3f);
+    grua.articulacion.escala = glm::vec3(0.3f, 2.8f, 0.3f);
 
-    grua.brazo.posicion = glm::vec3(0.0f, 1.5f, 0.0f);
+    grua.brazo.posicion = glm::vec3(0.0f, 1.4f, 0.0f);
     grua.brazo.rotacion = glm::vec3(0.0f, 0.0f, 0.0f);
     grua.brazo.escala = glm::vec3(0.2f, 0.2f, 5.0f);
 
     grua.giroruedas = 0.0f;
+}
+
+static void dibujarFocoFrontal(const Grua& grua, const glm::mat4& modeloGrua, GLuint shaderProgram) {
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.95f, 0.95f, 0.75f);
+
+    glm::mat4 model = modeloGrua;
+
+    // Centro del frontal de la cabina
+    model = glm::translate(model, glm::vec3(
+        0.0f,
+        grua.cabina.posicion.y,
+        grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.12f
+    ));
+
+    // Pequeño cubo tipo faro
+    model = glm::scale(model, glm::vec3(0.22f, 0.18f, 0.12f));
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    glBindVertexArray(VAO_cubo);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
 }
 
 static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion, GLuint shaderProgram, float r, float g, float b) {
@@ -143,17 +167,18 @@ void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     modeloGrua = glm::translate(modeloGrua, grua.posicion);
     modeloGrua = glm::rotate(modeloGrua, glm::radians(grua.direccion), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    dibujarPieza(grua.base, modeloGrua, shaderProgram, 0.3f, 0.3f, 0.3f);
-    dibujarPieza(grua.cabina, modeloGrua, shaderProgram, 0.9f, 0.5f, 0.1f);
-    dibujarPieza(grua.articulacion, modeloGrua, shaderProgram, 0.9f, 0.7f, 0.0f);
+    dibujarPieza(grua.base, modeloGrua, shaderProgram, 0.9f, 0.0f, 0.0f);
+    dibujarPieza(grua.cabina, modeloGrua, shaderProgram, 0.9f, 0.0f, 0.0f);
+    dibujarFocoFrontal(grua, modeloGrua, shaderProgram);
+    dibujarPieza(grua.articulacion, modeloGrua, shaderProgram, 0.0f, 1.0f, 1.0f);
 
     glm::mat4 modeloArt = modeloGrua * crearMatrizModelo(grua.articulacion,0);
     dibujarBrazo(grua.brazo, modeloArt, shaderProgram, 0.9f, 0.7f, 0.0f);
 
-    dibujarRueda(glm::vec3(-1.5f, -1.0f,  1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
-    dibujarRueda(glm::vec3( 1.5f, -1.0f,  1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
-    dibujarRueda(glm::vec3(-1.5f, -1.0f, -1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
-    dibujarRueda(glm::vec3( 1.5f, -1.0f, -1.7f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
+    dibujarRueda(glm::vec3(-1.25f, -1.0f,  1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
+    dibujarRueda(glm::vec3( 1.25f, -1.0f,  1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
+    dibujarRueda(glm::vec3(-1.25f, -1.0f, -1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
+    dibujarRueda(glm::vec3( 1.25f, -1.0f, -1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
 }
 
 void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo) {
