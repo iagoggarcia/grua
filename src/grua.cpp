@@ -15,8 +15,8 @@ static glm::mat4 crearMatrizModelo(const Pieza& pieza, int escala) {
     model = glm::rotate(model, glm::radians(pieza.rotacion.x), glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::rotate(model, glm::radians(pieza.rotacion.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(pieza.rotacion.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    if(escala == 1)
-    model = glm::scale(model, pieza.escala);
+    if (escala == 1)
+        model = glm::scale(model, pieza.escala);
 
     return model;
 }
@@ -40,7 +40,6 @@ static void dibujarRueda(const glm::vec3& posicionLocal, float giroruedas, const
     baseRueda = glm::translate(baseRueda, posicionLocal);
     baseRueda = glm::rotate(baseRueda, glm::radians(giroruedas), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    // RUEDA NEGRA
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), r, g, b);
 
@@ -52,7 +51,6 @@ static void dibujarRueda(const glm::vec3& posicionLocal, float giroruedas, const
     glBindVertexArray(VAO_esfera);
     glDrawArrays(GL_TRIANGLES, 0, verticesEsferaSize / (8 * sizeof(float)));
 
-    // MARCA ROJA
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 1.0f, 0.0f, 0.0f);
 
     glm::mat4 modelMarca = baseRueda;
@@ -71,13 +69,12 @@ static void aplicarRozamiento(Grua& grua, float deltaTime) {
     grua.velocidad *= (1.0f - 1.5f * deltaTime);
 
     if (std::abs(grua.velocidad) < 0.05f)
-        grua.velocidad = 0.0f; //metemos esto porque si no, cuando giramos y dejamos qeu se pare por rozamiento, la velocidad se aproxima a 0 pero nunca llega a 0
-        //entonces por debajo de un umbral la paramos, que si no se puede mover infinitamente estando "parada" hasta que la paremos nosotros
+        grua.velocidad = 0.0f;
 }
 
 static void limitarGruaAlSuelo(Grua& grua) {
-    const float limiteX = 19.0f;
-    const float limiteZ = 19.0f;
+    const float limiteX = 28.0f;
+    const float limiteZ = 28.0f;
 
     if (grua.posicion.x < -limiteX) grua.posicion.x = -limiteX;
     if (grua.posicion.x >  limiteX) grua.posicion.x =  limiteX;
@@ -113,19 +110,16 @@ static void dibujarFocoFrontal(const Grua& grua, const glm::mat4& modeloGrua, GL
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "esFoco"), 1);
 
-    // color base del foco apagado
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), 0.75f, 0.75f, 0.65f);
 
     glm::mat4 model = modeloGrua;
 
-    // MISMA posición que usamos en main.cpp para lightPos
     model = glm::translate(model, glm::vec3(
         0.0f,
         grua.cabina.posicion.y - 0.10f,
         grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.16f
     ));
 
-    // esfera más grande y más plana
     model = glm::scale(model, glm::vec3(0.22f, 0.22f, 0.08f));
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -142,19 +136,11 @@ static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion
     glUniform3f(glGetUniformLocation(shaderProgram, "colorUniform"), r, g, b);
 
     glm::mat4 model = modeloArticulacion;
-
-    // Punto de anclaje del brazo respecto a la articulación
     model = glm::translate(model, brazo.posicion);
-
-    // Rotación del brazo alrededor de su base
     model = glm::rotate(model, glm::radians(brazo.rotacion.x), glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::rotate(model, glm::radians(brazo.rotacion.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(brazo.rotacion.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-    // Desplazamos media longitud para que el cubo quede anclado por un extremo
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, brazo.escala.z / 2.0f));
-
-    // Escalamos el cubo para formar el brazo
     model = glm::scale(model, brazo.escala);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -165,7 +151,37 @@ static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
 }
 
+static void dibujarArbusto(GLuint shaderProgram, GLuint texturaArbusto, float x, float y, float z,float ancho, float alto, float grosor,float rotY)
+{
+    glBindVertexArray(VAO_cubo);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarArbusto"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texturaArbusto);
+    glUniform1i(glGetUniformLocation(shaderProgram, "textura1"), 0);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(x, y, z));
+    model = glm::rotate(model, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(ancho, alto, grosor));
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarArbusto"), 0);
+}
+
 void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarArbusto"), 0);
+
     glm::mat4 modeloGrua = glm::mat4(1.0f);
 
     modeloGrua = glm::translate(modeloGrua, grua.posicion);
@@ -176,7 +192,7 @@ void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     dibujarFocoFrontal(grua, modeloGrua, shaderProgram);
     dibujarPieza(grua.articulacion, modeloGrua, shaderProgram, 0.0f, 1.0f, 1.0f);
 
-    glm::mat4 modeloArt = modeloGrua * crearMatrizModelo(grua.articulacion,0);
+    glm::mat4 modeloArt = modeloGrua * crearMatrizModelo(grua.articulacion, 0);
     dibujarBrazo(grua.brazo, modeloArt, shaderProgram, 0.9f, 0.7f, 0.0f);
 
     dibujarRueda(glm::vec3(-1.25f, -1.0f,  1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
@@ -185,13 +201,19 @@ void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     dibujarRueda(glm::vec3( 1.25f, -1.0f, -1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
 }
 
-void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo) {
-    crearSuelo(shaderProgram, VAO_cubo);
+void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos) {
+    crearFondo(texturaFondo, camPos, shaderProgram);
+    crearSuelo(shaderProgram, VAO_cubo, texturaSuelo);
     dibujarGrua(grua, shaderProgram);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, -7.0f, 0.0f, -5.0f, 2.2f, 2.0f, 0.05f, 0.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -7.0f, 0.0f, -5.0f, 2.2f, 2.0f, 0.05f, 90.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, 6.0f, 0.0f, 4.0f, 2.0f, 1.8f, 0.05f, 20.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 6.0f, 0.0f, 4.0f, 2.0f, 1.8f, 0.05f, 110.0f);
 }
 
 void actualizarGrua(Grua& grua, float deltaTime) {
-
     float rad = glm::radians(grua.direccion);
 
     grua.posicion.x += std::sin(rad) * grua.velocidad * deltaTime;

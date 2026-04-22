@@ -19,13 +19,12 @@ struct Grua {
     glm::vec3 posicion;
     float direccion;
     float velocidad;
-    float giroruedas; //angulo con el que van a rotar las ruedas sobre sí mismas
+    float giroruedas;
 };
 
 void inicializarGrua(Grua& grua);
-static void dibujarFocoFrontal(const Grua& grua, const glm::mat4& modeloGrua, GLuint shaderProgram);
 void dibujarGrua(const Grua& grua, GLuint shaderProgram);
-void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo);
+void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos);
 void actualizarGrua(Grua& grua, float deltaTime);
 
 #endif

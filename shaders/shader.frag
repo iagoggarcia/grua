@@ -1,64 +1,105 @@
 #version 330 core
 
-in vec3 Normal;
 in vec3 FragPos;
+in vec3 Normal;
+in vec2 TexCoord;
 
 out vec4 FragColor;
+
+uniform sampler2D textura1;
 
 uniform bool usarColorUniform;
 uniform vec3 colorUniform;
 
+uniform bool usarTextura;
+uniform bool usarTexturaSuelo;
+uniform bool usarArbusto;
+uniform bool esFondo;
+uniform bool esFoco;
+
+uniform bool luzEncendida;
+
 uniform vec3 lightPos;
 uniform vec3 lightDir;
 uniform vec3 lightColor;
+uniform vec3 viewPos;
+
 uniform float cutOff;
 uniform float outerCutOff;
 
-uniform bool esFoco;
-uniform bool luzEncendida;
-
 void main()
 {
-    // La esferita del foco se ve brillante cuando la luz está encendida
-    if (esFoco) {
-        vec3 colorFocoApagado = colorUniform;
-        vec3 colorFocoEncendido = vec3(1.0f, 1.0f, 0.85f);
-
-        if (luzEncendida)
-            FragColor = vec4(colorFocoEncendido, 1.0f);
-        else
-            FragColor = vec4(colorFocoApagado, 1.0f);
-
+    // Fondo: sin iluminación, solo textura
+    if (esFondo)
+    {
+        FragColor = texture(textura1, TexCoord);
         return;
     }
 
-    vec3 objectColor;
+    // Determinar color base
+    vec4 colorBase;
 
     if (usarColorUniform)
-        objectColor = colorUniform;
+    {
+        colorBase = vec4(colorUniform, 1.0);
+    }
+    else if (usarTextura || usarTexturaSuelo || usarArbusto)
+    {
+        colorBase = texture(textura1, TexCoord);
+
+        // Transparencia para arbusto
+        if (usarArbusto && colorBase.a < 0.1)
+            discard;
+    }
     else
-        objectColor = vec3(0.15f, 0.5f, 0.15f);
+    {
+        colorBase = vec4(1.0, 1.0, 1.0, 1.0);
+    }
 
+    // La esferita del foco debe verse brillante, sin iluminación extra
+    if (esFoco)
+    {
+        FragColor = colorBase;
+        return;
+    }
+
+    // Si la luz está apagada, dejar algo de luz ambiente para no ver negro absoluto
     vec3 norm = normalize(Normal);
+    vec3 result;
 
-    // luz ambiente general
-    float ambientI = 0.7f;
-    vec3 ambient = ambientI * vec3(1.0f, 1.0f, 1.0f) * objectColor;
+    float ambientStrength = 0.65;
+    vec3 ambient = ambientStrength * colorBase.rgb;
 
-    vec3 lightVector = normalize(lightPos - FragPos);
+    if (!luzEncendida)
+    {
+        result = ambient;
+        FragColor = vec4(result, colorBase.a);
+        return;
+    }
 
-    float theta = dot(normalize(-lightVector), normalize(lightDir));
+    // Spotlight
+    vec3 lightDirection = normalize(lightPos - FragPos);
 
+    float theta = dot(lightDirection, normalize(-lightDir));
     float epsilon = cutOff - outerCutOff;
-    float intensidad = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
+    float intensidadFoco = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
 
-    float diff = max(dot(norm, lightVector), 0.0);
+    // Difusa
+    float diff = max(dot(norm, lightDirection), 0.0);
+    vec3 diffuse = diff * lightColor * colorBase.rgb;
 
-    float distancia = length(lightPos - FragPos);
-    float atenuacion = 1.0 / (1.0 + 0.09f * distancia + 0.032f * distancia * distancia);
+    // Especular
+    vec3 viewDirection = normalize(viewPos - FragPos);
+    vec3 reflectDirection = reflect(-lightDirection, norm);
 
-    vec3 diffuse = diff * intensidad * atenuacion * lightColor * objectColor * 2.5f;
+    float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), 32.0);
+    float specularStrength = 0.35;
+    vec3 specular = specularStrength * spec * lightColor;
 
-    vec3 result = ambient + diffuse;
-    FragColor = vec4(result, 1.0f);
+    diffuse *= intensidadFoco;
+    specular *= intensidadFoco;
+
+    result = ambient + diffuse + specular;
+
+    FragColor = vec4(result, colorBase.a);
 }

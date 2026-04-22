@@ -7,6 +7,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 
+GLuint VAO_esfera;
+GLuint VBO_esfera;
+
 float vertices_esfera[] = 
 	{ -0.0247692f, 0.987385f, -0.156387f,
 		0.0250000f, 1.00000f,
@@ -3608,7 +3611,7 @@ float vertices_esfera[] =
 	0.950000f, 0.100000f,
 	0.0964914f, -0.950057f, -0.294893f };
 
-    void crearEsfera(GLuint& VAO_esfera, GLuint& VBO_esfera) {
+void crearEsfera() {
     glGenVertexArrays(1, &VAO_esfera);
     glGenBuffers(1, &VBO_esfera);
 
@@ -3634,3 +3637,60 @@ float vertices_esfera[] =
 }
 
 const unsigned int verticesEsferaSize = sizeof(vertices_esfera);
+
+void crearFondo(GLuint texturaFondo, glm::vec3 posicionCamara, GLuint shaderProgram)
+{
+    glUseProgram(shaderProgram);
+
+    // El fondo no debe escribir en el depth buffer
+    glDepthMask(GL_FALSE);
+
+    // Como estamos dentro de la esfera, mejor quitar culling
+    glDisable(GL_CULL_FACE);
+
+    // Uniforms de control
+    glUniform1i(glGetUniformLocation(shaderProgram, "esFondo"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
+
+    // Si tienes otros flags de suelo / transparencia / arbusto, desactívalos también
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "usarArbusto"), 0);
+
+    // Activar textura
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texturaFondo);
+    glUniform1i(glGetUniformLocation(shaderProgram, "textura1"), 0);
+
+    // Matriz modelo: esfera centrada en la cámara y muy grande
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, posicionCamara);
+    model = glm::scale(model, glm::vec3(80.0f));
+
+    // Si sale girado, puedes probar con esto:
+    // model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glUniformMatrix4fv(
+        glGetUniformLocation(shaderProgram, "model"),
+        1,
+        GL_FALSE,
+        glm::value_ptr(model)
+    );
+
+    // Dibujar esfera
+    glBindVertexArray(VAO_esfera);
+    glDrawArrays(GL_TRIANGLES, 0, verticesEsferaSize / (8 * sizeof(float)));
+    glBindVertexArray(0);
+
+    // Limpiar estado
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "esFondo"), 0);
+
+    glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+}
+
+void liberarEsfera(){
+	glDeleteVertexArrays(1, &VAO_esfera);
+	glDeleteBuffers(1, &VBO_esfera);
+}

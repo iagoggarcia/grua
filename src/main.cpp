@@ -13,6 +13,7 @@
 #include "esfera.h"
 #include "tiempo.h"
 #include "camaras.h"
+#include "texturas.h"
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -36,13 +37,15 @@ GLuint shaderProgram;
 
 unsigned int VAO_cubo;
 unsigned int VBO_cubo;
-GLuint VAO_esfera;
-GLuint VBO_esfera;
+
 
 void openGlInit() {
     glClearDepth(1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 int main() {
@@ -74,9 +77,13 @@ int main() {
     framebuffer_size_callback(window, SCR_WIDTH, SCR_HEIGHT);
 
     crearCubo(VAO_cubo, VBO_cubo);
-    crearEsfera(VAO_esfera, VBO_esfera);
+    crearEsfera();
 
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
+
+    GLuint texturaSuelo = cargarTextura("texturas/hierba.jpg");
+    GLuint texturaArbusto = cargarTextura("texturas/arbusto.png");
+    GLuint texturaFondo = cargarTextura("texturas/cielo2.jpg");
 
     inicializarGrua(grua);
 
@@ -93,6 +100,7 @@ int main() {
 
         DatosCamara camara = calcularCamara(grua, modoCamara);
 
+        glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(camara.camPos));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(camara.view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -111,34 +119,22 @@ int main() {
         glm::vec3 arriba  = glm::vec3(0.0f, 1.0f, 0.0f);
 
         // MISMA posición que la esferita del foco
-        glm::vec3 focoLocal = glm::vec3(
-            0.0f,
-            grua.cabina.posicion.y - 0.10f,
-            grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.16f
-        );
+        glm::vec3 focoLocal = glm::vec3(0.0f, grua.cabina.posicion.y - 0.10f, grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.16f);
 
-        glm::vec3 lightPos = grua.posicion
-                           + derecha * focoLocal.x
-                           + arriba  * focoLocal.y
-                           + frente  * focoLocal.z;
+        glm::vec3 lightPos = grua.posicion + derecha * focoLocal.x + arriba * focoLocal.y + frente * focoLocal.z;
 
         // Dirección del foco hacia delante y un poco hacia abajo
         glm::vec3 lightDir = glm::normalize(frente + glm::vec3(0.0f, -0.18f, 0.0f));
 
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"),
-                    lightPos.x, lightPos.y, lightPos.z);
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+        glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), lightDir.x, lightDir.y, lightDir.z);
 
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"),
-                    lightDir.x, lightDir.y, lightDir.z);
-
-        glUniform1f(glGetUniformLocation(shaderProgram, "cutOff"),
-                    glm::cos(glm::radians(12.5f)));
-        glUniform1f(glGetUniformLocation(shaderProgram, "outerCutOff"),
-                    glm::cos(glm::radians(18.0f)));
+        glUniform1f(glGetUniformLocation(shaderProgram, "cutOff"), glm::cos(glm::radians(12.5f)));
+        glUniform1f(glGetUniformLocation(shaderProgram, "outerCutOff"), glm::cos(glm::radians(18.0f)));
 
         glUniform1i(glGetUniformLocation(shaderProgram, "esFoco"), 0);
 
-        dibujarEscena(grua, shaderProgram, VAO_cubo);
+        dibujarEscena(grua, shaderProgram, VAO_cubo, texturaSuelo, texturaArbusto, texturaFondo, camara.camPos);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -146,8 +142,7 @@ int main() {
 
     glDeleteVertexArrays(1, &VAO_cubo);
     glDeleteBuffers(1, &VBO_cubo);
-    glDeleteVertexArrays(1, &VAO_esfera);
-    glDeleteBuffers(1, &VBO_esfera);
+    liberarEsfera();
     glDeleteProgram(shaderProgram);
     glfwTerminate();
 

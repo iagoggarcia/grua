@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 
-void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo);
+void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo, GLuint texturaSuelo);
 
 void crearCubo(GLuint& VAO_cubo, GLuint& VBO_cubo);
 

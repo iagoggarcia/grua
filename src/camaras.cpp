@@ -16,7 +16,7 @@ DatosCamara calcularCamara(const Grua& grua, int modoCamara) {
         datos.camTarget = grua.posicion + glm::vec3(0.0f, 2.0f, 0.0f);
     }
     else {
-        datos.camPos = glm::vec3(50.0f, 20.0f, 8.0f);
+        datos.camPos = glm::vec3(55.0f, 23.0f, 10.0f);
         datos.camTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     }
 
