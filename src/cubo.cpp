@@ -5,6 +5,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+GLuint VAO_CUBO;
+GLuint VBO_CUBO;
+
 // Array de vértices: posición (3) + normal (3) + texCoord (2)
 float vertices[] = {
     // Cara frontal (+Z)
@@ -64,8 +67,8 @@ float vertices[] = {
 
 const unsigned int verticesSize = sizeof(vertices);
 
-void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo, GLuint texturaSuelo) {
-    glBindVertexArray(VAO_cubo);
+void crearSuelo(GLuint shaderProgram, GLuint texturaSuelo) {
+    glBindVertexArray(VAO_CUBO);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 1);
@@ -76,8 +79,8 @@ void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo, GLuint texturaSuelo
     glBindTexture(GL_TEXTURE_2D, texturaSuelo);
     glUniform1i(glGetUniformLocation(shaderProgram, "textura1"), 0);
 
-    for (int x = -60; x < 60; x++) {
-        for (int z = -60; z < 60; z++) {
+    for (int x = -40; x < 40; x++) {
+        for (int z = -40; z < 40; z++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(x, -1.0f, z));
             model = glm::scale(model, glm::vec3(1.0f, 0.1f, 1.0f));
@@ -92,12 +95,12 @@ void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo, GLuint texturaSuelo
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
 }
 
-void crearCubo(GLuint& VAO_cubo, GLuint& VBO_cubo) {
-    glGenVertexArrays(1, &VAO_cubo);
-    glGenBuffers(1, &VBO_cubo);
+void crearCubo() {
+    glGenVertexArrays(1, &VAO_CUBO);
+    glGenBuffers(1, &VBO_CUBO);
 
-    glBindVertexArray(VAO_cubo);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_cubo);
+    glBindVertexArray(VAO_CUBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_CUBO);
     glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
 
     // posición
@@ -114,4 +117,9 @@ void crearCubo(GLuint& VAO_cubo, GLuint& VBO_cubo) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void liberarCubo(){
+    glDeleteVertexArrays(1, &VAO_CUBO);
+    glDeleteBuffers(1, &VBO_CUBO);
 }

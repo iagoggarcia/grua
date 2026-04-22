@@ -17,26 +17,64 @@ uniform bool usarArbusto;
 uniform bool esFondo;
 uniform bool esFoco;
 
-uniform bool luzEncendida;
-
-uniform vec3 lightPos;
-uniform vec3 lightDir;
-uniform vec3 lightColor;
 uniform vec3 viewPos;
 
-uniform float cutOff;
-uniform float outerCutOff;
+// Luz 1: foco frontal
+uniform bool luz1Encendida;
+uniform vec3 lightPos1;
+uniform vec3 lightDir1;
+uniform vec3 lightColor1;
+uniform float cutOff1;
+uniform float outerCutOff1;
+
+// Luz 2: foco del brazo
+uniform bool luz2Encendida;
+uniform vec3 lightPos2;
+uniform vec3 lightDir2;
+uniform vec3 lightColor2;
+uniform float cutOff2;
+uniform float outerCutOff2;
+
+vec3 calcularSpotlight(
+    vec3 norm,
+    vec3 fragPos,
+    vec3 viewDirection,
+    vec3 lightPos,
+    vec3 lightDir,
+    vec3 lightColor,
+    float cutOff,
+    float outerCutOff,
+    vec3 colorBaseRGB
+)
+{
+    vec3 lightDirection = normalize(lightPos - fragPos);
+
+    float theta = dot(lightDirection, normalize(-lightDir));
+    float epsilon = cutOff - outerCutOff;
+    float intensidadFoco = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
+
+    float diff = max(dot(norm, lightDirection), 0.0);
+    vec3 diffuse = diff * lightColor * colorBaseRGB;
+
+    vec3 reflectDirection = reflect(-lightDirection, norm);
+    float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), 32.0);
+    float specularStrength = 0.35;
+    vec3 specular = specularStrength * spec * lightColor;
+
+    diffuse *= intensidadFoco;
+    specular *= intensidadFoco;
+
+    return diffuse + specular;
+}
 
 void main()
 {
-    // Fondo: sin iluminación, solo textura
     if (esFondo)
     {
         FragColor = texture(textura1, TexCoord);
         return;
     }
 
-    // Determinar color base
     vec4 colorBase;
 
     if (usarColorUniform)
@@ -47,7 +85,6 @@ void main()
     {
         colorBase = texture(textura1, TexCoord);
 
-        // Transparencia para arbusto
         if (usarArbusto && colorBase.a < 0.1)
             discard;
     }
@@ -56,50 +93,49 @@ void main()
         colorBase = vec4(1.0, 1.0, 1.0, 1.0);
     }
 
-    // La esferita del foco debe verse brillante, sin iluminación extra
     if (esFoco)
     {
         FragColor = colorBase;
         return;
     }
 
-    // Si la luz está apagada, dejar algo de luz ambiente para no ver negro absoluto
     vec3 norm = normalize(Normal);
-    vec3 result;
+    vec3 viewDirection = normalize(viewPos - FragPos);
 
     float ambientStrength = 0.65;
     vec3 ambient = ambientStrength * colorBase.rgb;
 
-    if (!luzEncendida)
+    vec3 iluminacion = ambient;
+
+    if (luz1Encendida)
     {
-        result = ambient;
-        FragColor = vec4(result, colorBase.a);
-        return;
+        iluminacion += calcularSpotlight(
+            norm,
+            FragPos,
+            viewDirection,
+            lightPos1,
+            lightDir1,
+            lightColor1,
+            cutOff1,
+            outerCutOff1,
+            colorBase.rgb
+        );
     }
 
-    // Spotlight
-    vec3 lightDirection = normalize(lightPos - FragPos);
+    if (luz2Encendida)
+    {
+        iluminacion += calcularSpotlight(
+            norm,
+            FragPos,
+            viewDirection,
+            lightPos2,
+            lightDir2,
+            lightColor2,
+            cutOff2,
+            outerCutOff2,
+            colorBase.rgb
+        );
+    }
 
-    float theta = dot(lightDirection, normalize(-lightDir));
-    float epsilon = cutOff - outerCutOff;
-    float intensidadFoco = clamp((theta - outerCutOff) / epsilon, 0.0, 1.0);
-
-    // Difusa
-    float diff = max(dot(norm, lightDirection), 0.0);
-    vec3 diffuse = diff * lightColor * colorBase.rgb;
-
-    // Especular
-    vec3 viewDirection = normalize(viewPos - FragPos);
-    vec3 reflectDirection = reflect(-lightDirection, norm);
-
-    float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), 32.0);
-    float specularStrength = 0.35;
-    vec3 specular = specularStrength * spec * lightColor;
-
-    diffuse *= intensidadFoco;
-    specular *= intensidadFoco;
-
-    result = ambient + diffuse + specular;
-
-    FragColor = vec4(result, colorBase.a);
+    FragColor = vec4(iluminacion, colorBase.a);
 }

@@ -11,7 +11,7 @@ OBJ_DIR = obj
 
 TARGET = grua
 
-CPP_SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/cubo.cpp $(SRC_DIR)/grua.cpp $(SRC_DIR)/esfera.cpp $(SRC_DIR)/camaras.cpp $(SRC_DIR)/tiempo.cpp $(SRC_DIR)/texturas.cpp
+CPP_SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/cubo.cpp $(SRC_DIR)/grua.cpp $(SRC_DIR)/esfera.cpp $(SRC_DIR)/camaras.cpp $(SRC_DIR)/tiempo.cpp $(SRC_DIR)/texturas.cpp $(SRC_DIR)/luces.cpp
 C_SOURCES = $(SRC_DIR)/glad.c
 
 CPP_OBJECTS = $(CPP_SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)

@@ -3,9 +3,11 @@
 
 #include <glad/glad.h>
 
-void crearSuelo(GLuint shaderProgram, unsigned int VAO_cubo, GLuint texturaSuelo);
+void crearSuelo(GLuint shaderProgram, GLuint texturaSuelo);
 
-void crearCubo(GLuint& VAO_cubo, GLuint& VBO_cubo);
+void crearCubo();
+
+void liberarCubo();
 
 extern float vertices[];
 extern const unsigned int verticesSize;

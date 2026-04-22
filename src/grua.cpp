@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 
-extern unsigned int VAO_cubo;
+extern GLuint VAO_CUBO;
 extern GLuint VAO_esfera;
 
 static glm::mat4 crearMatrizModelo(const Pieza& pieza, int escala) {
@@ -29,7 +29,7 @@ static void dibujarPieza(const Pieza& pieza, const glm::mat4& modeloPadre, GLuin
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(VAO_cubo);
+    glBindVertexArray(VAO_CUBO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
@@ -59,7 +59,7 @@ static void dibujarRueda(const glm::vec3& posicionLocal, float giroruedas, const
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelMarca));
 
-    glBindVertexArray(VAO_cubo);
+    glBindVertexArray(VAO_CUBO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
@@ -145,7 +145,7 @@ static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(VAO_cubo);
+    glBindVertexArray(VAO_CUBO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
@@ -153,7 +153,7 @@ static void dibujarBrazo(const Pieza& brazo, const glm::mat4& modeloArticulacion
 
 static void dibujarArbusto(GLuint shaderProgram, GLuint texturaArbusto, float x, float y, float z,float ancho, float alto, float grosor,float rotY)
 {
-    glBindVertexArray(VAO_cubo);
+    glBindVertexArray(VAO_CUBO);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
@@ -201,16 +201,40 @@ void dibujarGrua(const Grua& grua, GLuint shaderProgram) {
     dibujarRueda(glm::vec3( 1.25f, -1.0f, -1.55f), grua.giroruedas, modeloGrua, shaderProgram, 0.05f, 0.05f, 0.05f);
 }
 
-void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos) {
+void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos) {
     crearFondo(texturaFondo, camPos, shaderProgram);
-    crearSuelo(shaderProgram, VAO_cubo, texturaSuelo);
+    crearSuelo(shaderProgram, texturaSuelo);
     dibujarGrua(grua, shaderProgram);
 
-    dibujarArbusto(shaderProgram, texturaArbusto, -7.0f, 0.0f, -5.0f, 2.2f, 2.0f, 0.05f, 0.0f);
-    dibujarArbusto(shaderProgram, texturaArbusto, -7.0f, 0.0f, -5.0f, 2.2f, 2.0f, 0.05f, 90.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -18.0f, 0.0f, -12.0f, 2.2f, 2.0f, 0.05f, 0.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -18.0f, 0.0f, -12.0f, 2.2f, 2.0f, 0.05f, 90.0f);
 
-    dibujarArbusto(shaderProgram, texturaArbusto, 6.0f, 0.0f, 4.0f, 2.0f, 1.8f, 0.05f, 20.0f);
-    dibujarArbusto(shaderProgram, texturaArbusto, 6.0f, 0.0f, 4.0f, 2.0f, 1.8f, 0.05f, 110.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 16.0f, 0.0f, 10.0f, 2.0f, 1.8f, 0.05f, 20.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 16.0f, 0.0f, 10.0f, 2.0f, 1.8f, 0.05f, 110.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, -26.0f, 0.0f, 15.0f, 2.1f, 1.9f, 0.05f, 15.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -26.0f, 0.0f, 15.0f, 2.1f, 1.9f, 0.05f, 105.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, 22.0f, 0.0f, -18.0f, 2.4f, 2.0f, 0.05f, 35.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 22.0f, 0.0f, -18.0f, 2.4f, 2.0f, 0.05f, 125.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, -8.0f, 0.0f, 24.0f, 1.8f, 1.7f, 0.05f, 10.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -8.0f, 0.0f, 24.0f, 1.8f, 1.7f, 0.05f, 100.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, 28.0f, 0.0f, 20.0f, 2.3f, 2.1f, 0.05f, 25.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 28.0f, 0.0f, 20.0f, 2.3f, 2.1f, 0.05f, 115.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, -30.0f, 0.0f, -22.0f, 2.0f, 1.9f, 0.05f, 40.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -30.0f, 0.0f, -22.0f, 2.0f, 1.9f, 0.05f, 130.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, 8.0f, 0.0f, -26.0f, 2.1f, 1.8f, 0.05f, 5.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 8.0f, 0.0f, -26.0f, 2.1f, 1.8f, 0.05f, 95.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, -22.0f, 0.0f, 30.0f, 2.2f, 2.0f, 0.05f, 30.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, -22.0f, 0.0f, 30.0f, 2.2f, 2.0f, 0.05f, 120.0f);
+
+    dibujarArbusto(shaderProgram, texturaArbusto, 30.0f, 0.0f, -6.0f, 1.9f, 1.7f, 0.05f, 50.0f);
+    dibujarArbusto(shaderProgram, texturaArbusto, 30.0f, 0.0f, -6.0f, 1.9f, 1.7f, 0.05f, 140.0f);
 }
 
 void actualizarGrua(Grua& grua, float deltaTime) {

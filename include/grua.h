@@ -24,7 +24,7 @@ struct Grua {
 
 void inicializarGrua(Grua& grua);
 void dibujarGrua(const Grua& grua, GLuint shaderProgram);
-void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint VAO_cubo, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos);
+void dibujarEscena(const Grua& grua, GLuint shaderProgram, GLuint texturaSuelo, GLuint texturaArbusto, GLuint texturaFondo, glm::vec3 camPos);
 void actualizarGrua(Grua& grua, float deltaTime);
 
 #endif

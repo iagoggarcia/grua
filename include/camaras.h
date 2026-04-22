@@ -2,6 +2,7 @@
 #define CAMARAS_H
 
 #include <glm/glm.hpp>
+#include <glad/glad.h>
 #include "grua.h"
 
 struct DatosCamara {
@@ -12,5 +13,6 @@ struct DatosCamara {
 };
 
 DatosCamara calcularCamara(const Grua& grua, int modoCamara);
+void configurarCamaraShader(const DatosCamara& camara, GLuint shaderProgram, const glm::mat4& projection);
 
 #endif

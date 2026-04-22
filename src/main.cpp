@@ -14,6 +14,7 @@
 #include "tiempo.h"
 #include "camaras.h"
 #include "texturas.h"
+#include "luces.h"
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -24,8 +25,10 @@ float deltaTime = 0.0f;
 // Estado global de la escena
 Grua grua;
 int modoCamara = 2;
-bool luzEncendida = true;
+bool luzEncendidaFoco = true;
 bool teclaIPulsada = false;
+bool luzEncendidaBrazo = true;
+bool teclaTPulsada = false;
 
 // Configuración ventana
 const unsigned int SCR_WIDTH = 1000;
@@ -35,8 +38,13 @@ const unsigned int SCR_HEIGHT = 1000;
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
 GLuint shaderProgram;
 
-unsigned int VAO_cubo;
-unsigned int VBO_cubo;
+void liberar(){
+    liberarEsfera();
+    liberarCubo();
+    glDeleteProgram(shaderProgram);
+    glfwTerminate();
+}
+
 
 
 void openGlInit() {
@@ -76,7 +84,7 @@ int main() {
     openGlInit();
     framebuffer_size_callback(window, SCR_WIDTH, SCR_HEIGHT);
 
-    crearCubo(VAO_cubo, VBO_cubo);
+    crearCubo();
     crearEsfera();
 
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
@@ -100,52 +108,15 @@ int main() {
 
         DatosCamara camara = calcularCamara(grua, modoCamara);
 
-        glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(camara.camPos));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(camara.view));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-        glUniform1i(glGetUniformLocation(shaderProgram, "luzEncendida"), luzEncendida ? 1 : 0);
-
-        if (luzEncendida)
-            glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 2.2f, 2.2f, 1.8f);
-        else
-            glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 0.0f, 0.0f, 0.0f);
-
-        float rad = glm::radians(grua.direccion);
-
-        // Ejes locales de la grúa
-        glm::vec3 frente  = glm::normalize(glm::vec3(std::sin(rad), 0.0f, std::cos(rad)));
-        glm::vec3 derecha = glm::normalize(glm::vec3(std::cos(rad), 0.0f, -std::sin(rad)));
-        glm::vec3 arriba  = glm::vec3(0.0f, 1.0f, 0.0f);
-
-        // MISMA posición que la esferita del foco
-        glm::vec3 focoLocal = glm::vec3(0.0f, grua.cabina.posicion.y - 0.10f, grua.cabina.posicion.z + grua.cabina.escala.z / 2.0f + 0.16f);
-
-        glm::vec3 lightPos = grua.posicion + derecha * focoLocal.x + arriba * focoLocal.y + frente * focoLocal.z;
-
-        // Dirección del foco hacia delante y un poco hacia abajo
-        glm::vec3 lightDir = glm::normalize(frente + glm::vec3(0.0f, -0.18f, 0.0f));
-
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), lightDir.x, lightDir.y, lightDir.z);
-
-        glUniform1f(glGetUniformLocation(shaderProgram, "cutOff"), glm::cos(glm::radians(12.5f)));
-        glUniform1f(glGetUniformLocation(shaderProgram, "outerCutOff"), glm::cos(glm::radians(18.0f)));
-
-        glUniform1i(glGetUniformLocation(shaderProgram, "esFoco"), 0);
-
-        dibujarEscena(grua, shaderProgram, VAO_cubo, texturaSuelo, texturaArbusto, texturaFondo, camara.camPos);
+        configurarCamaraShader(camara, shaderProgram, projection);
+        configurarLucesGrua(grua, shaderProgram, luzEncendidaFoco, luzEncendidaBrazo);
+        dibujarEscena(grua, shaderProgram, texturaSuelo, texturaArbusto, texturaFondo, camara.camPos);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO_cubo);
-    glDeleteBuffers(1, &VBO_cubo);
-    liberarEsfera();
-    glDeleteProgram(shaderProgram);
-    glfwTerminate();
-
+    liberar();
     return 0;
 }
 
@@ -185,12 +156,18 @@ void processInput(GLFWwindow* window)
         grua.brazo.rotacion.x += 40.0f * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS && !teclaIPulsada) {
-        luzEncendida = !luzEncendida;
+        luzEncendidaFoco = !luzEncendidaFoco;
         teclaIPulsada = true;
     }
-
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) {
         teclaIPulsada = false;
+    }
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !teclaTPulsada) {
+        luzEncendidaBrazo = !luzEncendidaBrazo;
+        teclaTPulsada = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE) {
+        teclaTPulsada = false;
     }
 
     if (grua.brazo.rotacion.x < -60.0f)

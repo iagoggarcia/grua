@@ -1,5 +1,6 @@
 #include "camaras.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 DatosCamara calcularCamara(const Grua& grua, int modoCamara) {
     DatosCamara datos;
@@ -27,4 +28,27 @@ DatosCamara calcularCamara(const Grua& grua, int modoCamara) {
     );
 
     return datos;
+}
+
+void configurarCamaraShader(const DatosCamara& camara, GLuint shaderProgram, const glm::mat4& projection)
+{
+    glUniformMatrix4fv(
+        glGetUniformLocation(shaderProgram, "view"),
+        1,
+        GL_FALSE,
+        glm::value_ptr(camara.view)
+    );
+
+    glUniformMatrix4fv(
+        glGetUniformLocation(shaderProgram, "projection"),
+        1,
+        GL_FALSE,
+        glm::value_ptr(projection)
+    );
+
+    glUniform3fv(
+        glGetUniformLocation(shaderProgram, "viewPos"),
+        1,
+        glm::value_ptr(camara.camPos)
+    );
 }
