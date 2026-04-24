@@ -3612,6 +3612,7 @@ float vertices_esfera[] =
 	0.0964914f, -0.950057f, -0.294893f };
 
 void crearEsfera() {
+    // Reservamos y configuramos el VAO y el VBO de la esfera.
     glGenVertexArrays(1, &VAO_esfera);
     glGenBuffers(1, &VBO_esfera);
 
@@ -3620,15 +3621,18 @@ void crearEsfera() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO_esfera);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
 
-    // normales (los 3 primeros valores float)
+    // Atributo 1: normales.
+    // En esta geometría, los 3 primeros floats de cada vértice corresponden a la normal.
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
-    // textura (los 2 siguientes valores float)
+    // Atributo 2: coordenadas de textura.
+    // Los 2 siguientes floats corresponden a las coordenadas (u, v).
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // posición (los 3 últimos valores float)
+    // Atributo 0: posición.
+    // Los 3 últimos floats corresponden a la posición del vértice.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(0);
 
@@ -3642,33 +3646,32 @@ void crearFondo(GLuint texturaFondo, glm::vec3 posicionCamara, GLuint shaderProg
 {
     glUseProgram(shaderProgram);
 
-    // El fondo no debe escribir en el depth buffer
+    // El fondo no debe escribir en el depth buffer para no tapar al resto de objetos.
     glDepthMask(GL_FALSE);
 
-    // Como estamos dentro de la esfera, mejor quitar culling
+    // Desactivamos el culling porque la cámara está dentro de la esfera
+    // y necesitamos ver su cara interior.
     glDisable(GL_CULL_FACE);
 
-    // Uniforms de control
+    // Activamos en el shader el modo fondo y el uso de textura,
+    // desactivando otros modos especiales.
     glUniform1i(glGetUniformLocation(shaderProgram, "esFondo"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTextura"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarColorUniform"), 0);
-
-    // Si tienes otros flags de suelo / transparencia / arbusto, desactívalos también
     glUniform1i(glGetUniformLocation(shaderProgram, "usarTexturaSuelo"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "usarArbusto"), 0);
 
-    // Activar textura
+    // Asociamos la textura del fondo a la unidad de textura 0.
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texturaFondo);
     glUniform1i(glGetUniformLocation(shaderProgram, "textura1"), 0);
 
-    // Matriz modelo: esfera centrada en la cámara y muy grande
+    // Construimos la matriz modelo del fondo:
+    // colocamos la esfera en la posición de la cámara y la escalamos mucho
+    // para que envuelva visualmente toda la escena.
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, posicionCamara);
     model = glm::scale(model, glm::vec3(80.0f));
-
-    // Si sale girado, puedes probar con esto:
-    // model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glUniformMatrix4fv(
         glGetUniformLocation(shaderProgram, "model"),
@@ -3677,12 +3680,12 @@ void crearFondo(GLuint texturaFondo, glm::vec3 posicionCamara, GLuint shaderProg
         glm::value_ptr(model)
     );
 
-    // Dibujar esfera
+    // Dibujamos la esfera texturizada que actúa como fondo.
     glBindVertexArray(VAO_esfera);
     glDrawArrays(GL_TRIANGLES, 0, verticesEsferaSize / (8 * sizeof(float)));
     glBindVertexArray(0);
 
-    // Limpiar estado
+    // Restauramos el estado para no afectar al resto del renderizado.
     glBindTexture(GL_TEXTURE_2D, 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "esFondo"), 0);
 
@@ -3691,6 +3694,7 @@ void crearFondo(GLuint texturaFondo, glm::vec3 posicionCamara, GLuint shaderProg
 }
 
 void liberarEsfera(){
+    // Liberamos la memoria asociada al VAO y al VBO de la esfera.
 	glDeleteVertexArrays(1, &VAO_esfera);
 	glDeleteBuffers(1, &VBO_esfera);
 }
